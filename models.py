@@ -5,8 +5,10 @@ from params import *
 import gym, time, threading, random
 from gym import wrappers
 import numpy as np
-
+# ---------------------------
 class a3c:
+	train_queue = [ [], [], [], [], [] ]	# s, a, r, s', s' terminal mask
+	lock_queue = threading.Lock()	
 	def __init__(self):
 		# <s,a,r,s_> information collection by acting in environment
 		self.observation=tf.placeholder(tf.float32, shape=input_shape)
@@ -37,8 +39,47 @@ class a3c:
 		self.sess.run(self.init_op)
 		self.default_graph = tf.get_default_graph()
 		self.default_graph.finalize() # avoid modifications
+
+	def predict_v(self,observation):
+		v=self.sess.run(self.critic,feed_dict={self.observation:observation})
+		return v
+	def train_push(self, s, a, r, s_):
+		with self.lock_queue:
+			self.train_queue[0].append(s)
+			self.train_queue[1].append(a)
+			self.train_queue[2].append(r)
+			if s_ is None:
+				self.train_queue[3].append(NONE_STATE)
+				self.train_queue[4].append(0.)
+			else:	
+				self.train_queue[3].append(s_)
+				self.train_queue[4].append(1.)
 	def optimize(self):
-		optimizer_=self.sess()
+		if len(self.train_queue[0]) < MIN_BATCH:
+			time.sleep(0)	# yield
+			return
+
+		with self.lock_queue:
+			if len(self.train_queue[0]) < MIN_BATCH:	# more thread could have passed without lock
+				return 									# we can't yield inside lock
+
+			s, a, r, s_, s_mask = self.train_queue
+			self.train_queue = [ [], [], [], [], [] ]
+
+		s = np.vstack(s)
+		a = np.vstack(a)
+		r = np.vstack(r)
+		s_ = np.vstack(s_)
+		s_mask = np.vstack(s_mask)
+
+		if len(s) > 5*MIN_BATCH: print("Optimizer alert! Minimizing batch of %d" % len(s))
+
+		v = self.predict_v(s_)
+		r = r + GAMMA_N * v * s_mask	# set v to 0 where s_ is terminal state
+		
+		s_t, a_t, r_t, minimize = self.graph
+		self.sess.run(self.optimizer, feed_dict={observation: s, a_t: a, reward: r})
+
 	def actor(self,inputs): #modified vgg net
 		actions=self.VGG_modified(inputs,4,'actor/')
 		return actions
@@ -71,9 +112,8 @@ class a3c:
 		    net = slim.fully_connected(net, no_of_out, activation_fn=None, scope=scope+'fc8')
 		    print_shape(net)
 		    return net
-
+# ---------------------------
 model=a3c()
-
 class Environment(threading.Thread):
 	stop_signal = False
 	def __init__(self,render=False,eps_start=EPS_START, eps_end=EPS_STOP, eps_steps=EPS_STEPS):
@@ -100,10 +140,10 @@ class Environment(threading.Thread):
 			observation_new, reward, done, info = self.env.step(action)
 			t=t+1
 			self.R+=reward
+			if done:
+				observation_new_=None
+			self.agent.train(observation, action, reward, observation_new)
 			observation=observation_new
-			# if done:
-			# 	observation_new_=None
-			# self.agent.memory.append((observation,action,observation_new,reward))
 			if done:
 				print(threading.current_thread().name," episode:",self.episode, " reward:",self.R," took {} steps".format(t))
 				# self.agent.memory=[]
@@ -119,7 +159,7 @@ class Environment(threading.Thread):
 	def stop(self):
 		self.stop_signal = True
 	# def rollout_reward(self):
-
+# ---------------------------
 class Optimizer(threading.Thread):
 	stop_signal = False
 
@@ -159,41 +199,37 @@ class Agent:
 
 		else:
 			s = np.array([s])
-			# p = model.predict_p(s)[0]
 			p=model.sess.run(model.p,feed_dict={model.observation:s})
 			a = np.random.choice(NUM_ACTIONS, p=p[0])
-
 			return a
 	
-	# def train(self, s, a, r, s_):
-	# 	def get_sample(memory, n):
-	# 		s, a, _, _  = memory[0]
-	# 		_, _, _, s_ = memory[n-1]
+	def train(self, s, a, r, s_):
+		def get_sample(memory, n):
+			s, a, _, _  = memory[0]
+			_, _, _, s_ = memory[n-1]
 
-	# 		return s, a, self.R, s_
+			return s, a, self.R, s_
 
-	# 	a_cats = np.zeros(NUM_ACTIONS)	# turn action into one-hot representation
-	# 	a_cats[a] = 1 
+		a_cats = np.zeros(NUM_ACTIONS)	# turn action into one-hot representation
+		a_cats[a] = 1 
+		self.memory.append( ([s], a_cats, r, [s_]) )
 
-	# 	self.memory.append( (s, a_cats, r, s_) )
+		self.R = ( self.R + r * GAMMA_N ) / GAMMA
 
-	# 	self.R = ( self.R + r * GAMMA_N ) / GAMMA
+		if s_ is None:
+			while len(self.memory) > 0:
+				n = len(self.memory)
+				s, a, r, s_ = get_sample(self.memory, n)
+				model.train_push(s, a, r, s_)
 
-	# 	if s_ is None:
-	# 		while len(self.memory) > 0:
-	# 			n = len(self.memory)
-	# 			s, a, r, s_ = get_sample(self.memory, n)
-	# 			brain.train_push(s, a, r, s_)
+				self.R = ( self.R - self.memory[0][2] ) / GAMMA
+				self.memory.pop(0)		
 
-	# 			self.R = ( self.R - self.memory[0][2] ) / GAMMA
-	# 			self.memory.pop(0)		
+			self.R = 0
 
-	# 		self.R = 0
+		if len(self.memory) >= N_STEP_RETURN:
+			s, a, r, s_ = get_sample(self.memory, N_STEP_RETURN)
+			model.train_push(s, a, r, s_)
 
-	# 	if len(self.memory) >= N_STEP_RETURN:
-	# 		s, a, r, s_ = get_sample(self.memory, N_STEP_RETURN)
-	# 		brain.train_push(s, a, r, s_)
-
-	# 		self.R = self.R - self.memory[0][2]
-	# 		self.memory.pop(0)		
-	# possible edge case - if an episode ends in <N steps, the computation is incorrect
+			self.R = self.R - self.memory[0][2]
+			self.memory.pop(0)		
