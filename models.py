@@ -41,7 +41,7 @@ class a3c:
 		self.default_graph.finalize() # avoid modifications
 
 	def predict_v(self,observation):
-		v=self.sess.run(self.critic,feed_dict={self.observation:observation})
+		v=self.sess.run(self.v,feed_dict={self.observation:observation})
 		return v
 	def train_push(self, s, a, r, s_):
 		with self.lock_queue:
@@ -76,16 +76,14 @@ class a3c:
 
 		v = self.predict_v(s_)
 		r = r + GAMMA_N * v * s_mask	# set v to 0 where s_ is terminal state
-		
-		s_t, a_t, r_t, minimize = self.graph
-		self.sess.run(self.optimizer, feed_dict={observation: s, a_t: a, reward: r})
+		self.sess.run(self.optimizer, feed_dict={self.observation: s, self.a_t: a, self.reward: r})
 
 	def actor(self,inputs): #modified vgg net
 		actions=self.VGG_modified(inputs,4,'actor/')
 		return actions
 	
 	def critic(self,inputs):
-		value=self.VGG_modified(inputs,4,'value/')
+		value=self.VGG_modified(inputs,1,'value/')
 		return value
 
 	def VGG_modified(self,inputs,no_of_out,scope):
@@ -220,6 +218,7 @@ class Agent:
 			while len(self.memory) > 0:
 				n = len(self.memory)
 				s, a, r, s_ = get_sample(self.memory, n)
+				print(np.shape(a))
 				model.train_push(s, a, r, s_)
 
 				self.R = ( self.R - self.memory[0][2] ) / GAMMA
@@ -229,6 +228,7 @@ class Agent:
 
 		if len(self.memory) >= N_STEP_RETURN:
 			s, a, r, s_ = get_sample(self.memory, N_STEP_RETURN)
+			# a=np.reshape(a,[1,4])
 			model.train_push(s, a, r, s_)
 
 			self.R = self.R - self.memory[0][2]

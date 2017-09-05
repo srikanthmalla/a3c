@@ -22,8 +22,8 @@ output_shape=4
 #asynchronous 
 THREADS=2
 OPTIMIZERS=2
-RUN_TIME=100
-max_no_episodes=6
+RUN_TIME=30
+max_no_episodes=3
 
 GAMMA = 0.99
 N_STEP_RETURN = 100
