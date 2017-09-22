@@ -1,5 +1,5 @@
 from params import *
-from models import Environment,Optimizer
+from agent import Environment,Optimizer
 import time
 
 envs = [Environment() for i in range(THREADS)]
