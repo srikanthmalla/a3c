@@ -1,9 +1,9 @@
-# A3C (Advantage Advantage Actor Critic):
+# A3C (Asynchronous Advantage Actor Critic):
 Paper: https://arxiv.org/pdf/1602.01783.pdf
 
 1. Run the main file:    ``python main.py``
 
-2. To customize change the ``params.py`` file.
+2. To customize, change the ``params.py`` file.
 
 3. TF Records are created in folder `graphs/results`
 
