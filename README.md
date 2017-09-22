@@ -1,5 +1,5 @@
 # A3C (Asynchronous Advantage Actor Critic):
-Paper: https://arxiv.org/pdf/1602.01783.pdf
+Paper: https://arxiv.org/pdf/1602.01783v1.pdf
 
 1. Run the main file:    `python main.py`
 
