@@ -20,6 +20,9 @@ class a3c:
 		self.p= tf.nn.softmax(self.actor(self.observation), name='action_probability')#probabilities of action predicted
 		self.v= self.critic(self.observation) #value predicted
 
+		#saver of the model
+		self.saver = tf.train.Saver()
+
 		#advantage and losses
 		self.logp = tf.log(tf.reduce_sum(self.p*self.a_t, axis=1, keep_dims=True) + 1e-10)
 		self.advantage= self.reward - self.v
@@ -39,6 +42,8 @@ class a3c:
 		self.sess.run(self.init_op)
 		self.default_graph = tf.get_default_graph()
 		self.default_graph.finalize() # avoid modifications
+	def save_model(self,step):
+		self.saver.save(self.sess, './tmp/model.ckpt', global_step=step)
 
 	def predict_v(self,observation):
 		v=self.sess.run(self.v,feed_dict={self.observation:observation})
@@ -154,6 +159,10 @@ class Environment(threading.Thread):
 			self.episode+=1
 			if self.episode>max_no_episodes:
 				self.stop()
+			if self.episode%ckpt_episode==0:
+				model.save(self.episode)
+				print("saved model at episode {}".format(self.episode))
+
 	def stop(self):
 		self.stop_signal = True
 	# def rollout_reward(self):

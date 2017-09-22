@@ -22,8 +22,10 @@ output_shape=4
 #asynchronous 
 THREADS=2
 OPTIMIZERS=2
-RUN_TIME=30
-max_no_episodes=3
+# RUN_TIME=60 #2days limit
+RUN_TIME=172800 #2days limit
+max_no_episodes=10000
+ckpt_episode=1000
 
 GAMMA = 0.99
 N_STEP_RETURN = 100
