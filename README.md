@@ -1,6 +1,6 @@
 # A3C (Asynchronous Advantage Actor Critic):
 Paper: https://arxiv.org/pdf/1602.01783v1.pdf
-
+![alt text](algo.png)
 1. Run the main file:    `python main.py`
 
 2. To customize, change the `params.py` file.
