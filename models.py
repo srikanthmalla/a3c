@@ -28,13 +28,13 @@ class a2c:
 		self.logp = tf.log(tf.reduce_sum(self.p*self.a_t, axis=1, keep_dims=True) + 1e-10)
 		self.advantage= self.R - self.V
 		self.loss_policy = - self.logp * tf.stop_gradient(self.advantage)
-		self.loss_value  = LOSS_V * tf.square(self.advantage)												# minimize value error
+		self.loss_value  = LOSS_V * tf.square(self.advantage)				# minimize value error
 		#will try entropy loss afterwards
         #self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
 		#self.loss_total = tf.reduce_mean(self.loss_policy + self.loss_value + self.entropy)
 		self.actor_optimizer = tf.train.AdamOptimizer(learning_rate=actor_lr).minimize(self.loss_policy)
-        self.critic_optimizer = tf.train.AdamOptimizer(learning_rate=critic_lr).minimize(self.loss_value)
-
+		self.critic_optimizer = tf.train.AdamOptimizer(learning_rate=critic_lr).minimize(self.loss_value)
+		
 		#session and initialization
 		self.sess=tf.Session()
 		self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
