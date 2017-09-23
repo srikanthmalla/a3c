@@ -3,90 +3,78 @@ from params import *
 import gym, time, threading, random
 from gym import wrappers
 import numpy as np
-from networks import VGG
-# ---------------------------
-class a3c:
-	train_queue = [ [], [], [], [], [] ]	# s, a, r, s', s' terminal mask
-	lock_queue = threading.Lock()	
-	def __init__(self):
-		# <s,a,r,s_> information collection by acting in environment
-		self.observation=tf.placeholder(tf.float32, shape=input_shape)
-		self.reward= tf.placeholder(tf.float32,shape=[None,1]) #not immediate but n step discounted
-		self.a_t=tf.placeholder(tf.float32,shape=[None,4])
-		self.s_=tf.placeholder(tf.float32, shape=input_shape)
+from networks import FCN_one_hidden
 
+
+# reproducible
+np.random.seed(1234)
+
+class a2c:
+	def __init__(self):
+		# <s,a,R,s_> information collection by acting in environment
+		self.observation=tf.placeholder(tf.float32, shape=input_shape)
+		self.R= tf.placeholder(tf.float32,shape=[None,1]) #not immediate but n step discounted
+		self.a_t=tf.placeholder(tf.float32,shape=[None,no_of_actions]) #which action was taken 
+                self.total_reward=tf.placeholder(tf.float32,shape=[None,1])
+                
 		# act in environment and critisize the actions
 		self.p= tf.nn.softmax(self.actor(self.observation), name='action_probability')#probabilities of action predicted
-		self.v= self.critic(self.observation) #value predicted
+		self.V= self.critic(self.observation) #value predicted
 
-		#saver of the model
+		#saver 
 		self.saver = tf.train.Saver()
 
 		#advantage and losses
 		self.logp = tf.log(tf.reduce_sum(self.p*self.a_t, axis=1, keep_dims=True) + 1e-10)
-		self.advantage= self.reward - self.v
+		self.advantage= self.R - self.V
 		self.loss_policy = - self.logp * tf.stop_gradient(self.advantage)
 		self.loss_value  = LOSS_V * tf.square(self.advantage)												# minimize value error
-		self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
-		self.loss_total = tf.reduce_mean(self.loss_policy + self.loss_value + self.entropy)
-		self.optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss_total)
+		#will try entropy loss afterwards
+                #self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
+		#self.loss_total = tf.reduce_mean(self.loss_policy + self.loss_value + self.entropy)
+		self.actor_optimizer = tf.train.AdamOptimizer(learning_rate=actor_lr).minimize(self.loss_policy)
+                self.critic_optimizer = tf.train.AdamOptimizer(learning_rate=critic_lr).minimize(self.loss_value)
 
 		#session and initialization
 		self.sess=tf.Session()
 		self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
-		self.log_reward=tf.summary.scalar("reward", self.reward)
-		self.summary=tf.summary.merge_all()
+		self.log_reward=tf.summary.scalar("totalreward", tf.reduce_sum(self.total_reward))
+		self.log_policyloss=tf.summary.scalar("actor_loss",tf.reduce_sum(self.loss_policy))
+                self.log_criticloss=tf.summary.scalar("critic_loss",tf.reduce_sum(self.loss_value))
+                #self.summary=tf.summary.merge_all()
 
 		self.init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
 		self.sess.run(self.init_op)
 		self.default_graph = tf.get_default_graph()
 		self.default_graph.finalize() # avoid modifications
-	def save_model(self,step):
+	
+        def save(self,step):
 		self.saver.save(self.sess, './tmp/model.ckpt', global_step=step)
 
-	def predict_v(self,observation):
+	def predict_value(self,observation):
 		v=self.sess.run(self.v,feed_dict={self.observation:observation})
 		return v
-	def train_push(self, s, a, r, s_):
-		with self.lock_queue:
-			self.train_queue[0].append(s)
-			self.train_queue[1].append(a)
-			self.train_queue[2].append(r)
-			if s_ is None:
-				self.train_queue[3].append(NONE_STATE)
-				self.train_queue[4].append(0.)
-			else:	
-				self.train_queue[3].append(s_)
-				self.train_queue[4].append(1.)
-	def optimize(self):
-		if len(self.train_queue[0]) < MIN_BATCH:
-			time.sleep(0)	# yield
-			return
 
-		with self.lock_queue:
-			if len(self.train_queue[0]) < MIN_BATCH:	# more thread could have passed without lock
-				return 									# we can't yield inside lock
-
-			s, a, r, s_, s_mask = self.train_queue
-			self.train_queue = [ [], [], [], [], [] ]
-
-		s = np.vstack(s)
-		a = np.vstack(a)
-		r = np.vstack(r)
-		s_ = np.vstack(s_)
-		s_mask = np.vstack(s_mask)
-
-		if len(s) > 5*MIN_BATCH: print("Optimizer alert! Minimizing batch of %d" % len(s))
-
-		v = self.predict_v(s_)
-		r = r + GAMMA_N * v * s_mask	# set v to 0 where s_ is terminal state
-		self.sess.run(self.optimizer, feed_dict={self.observation: s, self.a_t: a, self.reward: r})
+        def predict_action_prob(self,observation):
+                a=self.sess.run(self.p,feed_dict={self.observation:observation})
+                return a
 
 	def actor(self,inputs): #modified vgg net
-		actions=VGG(inputs,4,'actor/')
+		actions=FCN_one_hidden(inputs,10,no_of_actions,'actor/')
 		return actions
 	
 	def critic(self,inputs):
-		value=VGG(inputs,1,'value/')
+		value=FCN_one_hidden(inputs,10,1,'value/')
 		return value
+        
+        def train_actor(self, observations, actions, R, step):
+                [_, policyloss]=self.sess.run([self.actor_optimizer, self.log_policyloss], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})
+                self.writer.add_summary(policyloss, step)
 
+        def train_critic(self, observations, R, step):      
+                [_, criticloss]=self.sess.run([self.critic_optimizer, self.log_criticloss], feed_dict={self.observation:observations, self.R:R})
+                self.writer.add_summary(criticloss, step)
+        #useful to log other details like features, rewards
+        def log_details(self, total_reward, step):
+                tot_r=self.sess.run(self.log_reward, feed_dict={self.total_reward:total_reward})   
+                self.writer.add_summary(tot_r, step) 

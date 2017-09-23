@@ -1,38 +1,30 @@
-import numpy as np
 #openai gym environments
-environment="Breakout-v4"
+env_name="CartPole-v0"
+import gym
+Environment=gym.make(env_name)
 create_video= False
-# env_test = Environment(render=True, eps_start=0., eps_end=0.)
-NUM_ACTIONS = 4
+no_of_actions= Environment.action_space.n
+observation_shape=Environment.observation_space.shape
+#action_details=Environment.unwrapped.get_action_meanings() #cartpole doesnt has this action meanings but breakout does
+render=False
 
 #tensorflow details
+input_shape=(None,)+observation_shape
+output_shape = (None,)+ (no_of_actions,)
 batch_size=1
 tf_logdir='./graphs/results'
-learning_rate=1E-3
+actor_lr=1E-3
+critic_lr=1E-3
+LOSS_V=1.0
 
-#coefficients
-LOSS_V=0.5
-LOSS_ENTROPY=0.01
-
-#atari_breakoutV0
-input_shape=(None,210, 160, 3)
-NONE_STATE = np.zeros((1,210, 160, 3))
-output_shape=4
-
-#asynchronous 
-THREADS=2
-OPTIMIZERS=2
-# RUN_TIME=60 #2days limit
-RUN_TIME=172800 #2days limit
+#RL_agent details
+use_model='a2c'
 max_no_episodes=10000
 ckpt_episode=1000
-
 GAMMA = 0.99
-N_STEP_RETURN = 100
-GAMMA_N = GAMMA ** N_STEP_RETURN
 
 #epsilon greedy, not the learning rate
-EPS_START = 0.4
-EPS_STOP  = .15
-EPS_STEPS = 75000
-MIN_BATCH = 32
+eps_start = 0.4
+eps_stop  = .15
+eps_steps = max_no_episodes
+d_eps= (eps_start-eps_stop)/eps_steps

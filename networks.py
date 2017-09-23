@@ -26,3 +26,11 @@ def VGG(inputs,no_of_out,scope):
 		net = slim.fully_connected(net, no_of_out, activation_fn=None, scope=scope+'fc8')
 		print_shape(net)
 		return net
+def FCN_one_hidden(inputs,no_of_hidden,no_of_out,scope):
+    with slim.arg_scope([slim.fully_connected],
+                activation_fn=tf.nn.relu,
+                weights_initializer=tf.truncated_normal_initializer(0.0,0.01),
+                weights_regularizer=slim.l2_regularizer(0.0005)):
+        net=slim.fully_connected(inputs,no_of_hidden,scope=scope+'hidden1')
+        net=slim.fully_connected(net,no_of_out,scope=scope+'out')
+        return net
