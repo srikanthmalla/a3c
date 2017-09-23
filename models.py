@@ -39,8 +39,8 @@ class a2c:
 		self.sess=tf.Session()
 		self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
 		self.log_reward=tf.summary.scalar("totalreward", tf.reduce_sum(self.total_reward))
-		self.log_policyloss=tf.summary.scalar("actor_loss",tf.reduce_sum(self.loss_policy))
-                self.log_criticloss=tf.summary.scalar("critic_loss",tf.reduce_sum(self.loss_value))
+		self.log_policyloss=tf.summary.scalar("actor_loss",tf.reduce_mean(self.loss_policy))
+                self.log_criticloss=tf.summary.scalar("critic_loss",tf.reduce_mean(self.loss_value))
                 #self.summary=tf.summary.merge_all()
 
 		self.init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())

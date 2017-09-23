@@ -13,8 +13,8 @@ input_shape=(None,)+observation_shape
 output_shape = (None,)+ (no_of_actions,)
 batch_size=1
 tf_logdir='./graphs/results'
-actor_lr=1E-3
-critic_lr=1E-3
+actor_lr=1E-4
+critic_lr=1E-4
 LOSS_V=1.0
 
 #RL_agent details
