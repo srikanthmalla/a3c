@@ -15,7 +15,7 @@ class a2c:
 		self.observation=tf.placeholder(tf.float32, shape=input_shape)
 		self.R= tf.placeholder(tf.float32,shape=[None,1]) #not immediate but n step discounted
 		self.a_t=tf.placeholder(tf.float32,shape=[None,no_of_actions]) #which action was taken 
-                self.total_reward=tf.placeholder(tf.float32,shape=[None,1])
+		self.total_reward=tf.placeholder(tf.float32,shape=[None,1])
                 
 		# act in environment and critisize the actions
 		self.p= tf.nn.softmax(self.actor(self.observation), name='action_probability')#probabilities of action predicted
@@ -30,18 +30,18 @@ class a2c:
 		self.loss_policy = - self.logp * tf.stop_gradient(self.advantage)
 		self.loss_value  = LOSS_V * tf.square(self.advantage)												# minimize value error
 		#will try entropy loss afterwards
-                #self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
+        #self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
 		#self.loss_total = tf.reduce_mean(self.loss_policy + self.loss_value + self.entropy)
 		self.actor_optimizer = tf.train.AdamOptimizer(learning_rate=actor_lr).minimize(self.loss_policy)
-                self.critic_optimizer = tf.train.AdamOptimizer(learning_rate=critic_lr).minimize(self.loss_value)
+        self.critic_optimizer = tf.train.AdamOptimizer(learning_rate=critic_lr).minimize(self.loss_value)
 
 		#session and initialization
 		self.sess=tf.Session()
 		self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
 		self.log_reward=tf.summary.scalar("totalreward", tf.reduce_sum(self.total_reward))
 		self.log_policyloss=tf.summary.scalar("actor_loss",tf.reduce_mean(self.loss_policy))
-                self.log_criticloss=tf.summary.scalar("critic_loss",tf.reduce_mean(self.loss_value))
-                #self.summary=tf.summary.merge_all()
+        self.log_criticloss=tf.summary.scalar("critic_loss",tf.reduce_mean(self.loss_value))
+        #self.summary=tf.summary.merge_all()
 
 		self.init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
 		self.sess.run(self.init_op)
@@ -55,9 +55,9 @@ class a2c:
 		v=self.sess.run(self.v,feed_dict={self.observation:observation})
 		return v
 
-        def predict_action_prob(self,observation):
-                a=self.sess.run(self.p,feed_dict={self.observation:observation})
-                return a
+    def predict_action_prob(self,observation):
+        a=self.sess.run(self.p,feed_dict={self.observation:observation})
+        return a
 
 	def actor(self,inputs): #modified vgg net
 		actions=FCN_one_hidden(inputs,10,no_of_actions,'actor/')
@@ -67,14 +67,15 @@ class a2c:
 		value=FCN_one_hidden(inputs,10,1,'value/')
 		return value
         
-        def train_actor(self, observations, actions, R, step):
-                [_, policyloss]=self.sess.run([self.actor_optimizer, self.log_policyloss], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})
-                self.writer.add_summary(policyloss, step)
+    def train_actor(self, observations, actions, R, step):
+        [_, policyloss]=self.sess.run([self.actor_optimizer, self.log_policyloss], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})
+        self.writer.add_summary(policyloss, step)
 
-        def train_critic(self, observations, R, step):      
-                [_, criticloss]=self.sess.run([self.critic_optimizer, self.log_criticloss], feed_dict={self.observation:observations, self.R:R})
-                self.writer.add_summary(criticloss, step)
-        #useful to log other details like features, rewards
-        def log_details(self, total_reward, step):
-                tot_r=self.sess.run(self.log_reward, feed_dict={self.total_reward:total_reward})   
-                self.writer.add_summary(tot_r, step) 
+    def train_critic(self, observations, R, step):      
+        [_, criticloss]=self.sess.run([self.critic_optimizer, self.log_criticloss], feed_dict={self.observation:observations, self.R:R})
+        self.writer.add_summary(criticloss, step)
+
+    #useful to log other details like features, rewards
+    def log_details(self, total_reward, step):
+        tot_r=self.sess.run(self.log_reward, feed_dict={self.total_reward:total_reward})   
+        self.writer.add_summary(tot_r, step) 
