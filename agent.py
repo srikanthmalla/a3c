@@ -47,6 +47,7 @@ class RL_Agent():
 		while self.episode<max_no_episodes:
 			self.run_episode()
 			self.bellman_update()
+			print(np.shape(self.R))
 			self.model.train_actor(self.observations,self.actions,self.R,self.episode)
 			self.model.train_critic(self.observations,self.R,self.episode)
 			self.EPS-=d_eps
@@ -67,7 +68,8 @@ class RL_Agent():
 			t=self.r[i-1]+GAMMA*self.R_terminal
 			self.R.append([t])
 			self.R_terminal=t
-        self.R=self.R.reverse()
+		self.R=np.flip(self.R,axis=0)
+		# self.R=self.R.reverse()
 
 	def predict_action(self,prob):
 		#here we use epsilon greedy exploration by tossing a coin
