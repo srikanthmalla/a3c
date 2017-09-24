@@ -47,7 +47,6 @@ class RL_Agent():
 		while self.episode<max_no_episodes:
 			self.run_episode()
 			self.bellman_update()
-			print(np.shape(self.R))
 			self.model.train_actor(self.observations,self.actions,self.R,self.episode)
 			self.model.train_critic(self.observations,self.R,self.episode)
 			self.EPS-=d_eps
