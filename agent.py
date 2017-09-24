@@ -67,6 +67,8 @@ class RL_Agent():
 			t=self.r[i-1]+GAMMA*self.R_terminal
 			self.R.append([t])
 			self.R_terminal=t
+        self.R=self.R.reverse()
+
 	def predict_action(self,prob):
 		#here we use epsilon greedy exploration by tossing a coin
 		action=np.amax(prob)

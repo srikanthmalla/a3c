@@ -19,7 +19,7 @@ LOSS_V=1.0
 
 #RL_agent details
 use_model='a2c'
-max_no_episodes=10000
+max_no_episodes=100000
 ckpt_episode=1000
 GAMMA = 0.99
 
