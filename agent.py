@@ -27,7 +27,7 @@ class RL_Agent():
 				self.env.render()#show the game, xlib error with multiple threads
 			# action = self.env.action_space.sample() # your agent here (this takes random actions)
 			action_prob=self.model.predict_action_prob([observation])
-			action=self.predict_action(action_prob)
+			action=self.predict_action(action_prob,t)
 			self.observations.append(observation)
 			self.actions.append(onehot(action,no_of_actions))
 			observation_new, reward, done, info = self.env.step(action)
@@ -36,7 +36,7 @@ class RL_Agent():
 			self.total_reward+=reward
 			observation=observation_new
 			if done:
-				print(" episode:",self.episode, " reward:",self.total_reward," took {} steps".format(t))
+				print(" episode:",self.episode,"eps:","{0:.2f}".format(self.EPS), " reward:",self.total_reward," took {} steps".format(t))
 				self.model.log_details(np.array([[self.total_reward]]),self.episode)
 				self.total_reward=0
 				self.R_terminal=0
@@ -47,7 +47,7 @@ class RL_Agent():
 	def run(self):
 		while self.episode<max_no_episodes:
 			self.run_episode()
-			self.update_R()
+			self.bellman_update()
 			self.model.train_actor(self.observations,self.actions,self.R,self.episode)
 			self.model.train_critic(self.observations,self.R,self.episode)
 			self.EPS-=d_eps
@@ -70,16 +70,9 @@ class RL_Agent():
 			self.R_terminal=t
 		self.R=np.flip(self.R,axis=0)
 
-	def update_R(self):
-		for i in range(len(self.r),0,-1):
-			t=self.r[i-1]+GAMMA*self.R_terminal
-			self.R.append([t])
-			self.R_terminal=self.model.predict_value([self.observations[i-1]])
-		self.R=np.flip(self.R,axis=0)
-			
-	def predict_action(self,prob):
+	def predict_action(self,prob,t):
 		#here we use epsilon greedy exploration by tossing a coin
 		action=np.argmax(prob)
-		if np.random.uniform < self.EPS:
+		if np.random.uniform() < self.EPS:
 			action=self.env.action_space.sample()
 		return action

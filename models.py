@@ -25,7 +25,8 @@ class a2c:
 		self.saver = tf.train.Saver()
 
 		#advantage and losses
-		self.logp = tf.log(tf.reduce_sum(self.p*self.a_t, axis=1, keep_dims=True) + 1e-10)
+		self.exec_prob=self.p*self.a_t
+		self.logp = tf.log(tf.reduce_sum(self.exec_prob, axis=1, keep_dims=True) + 1e-10)
 		self.advantage= self.R - self.V
 		self.loss_policy = - tf.reduce_sum(self.logp * tf.stop_gradient(self.advantage))
 		self.loss_value  = LOSS_V * tf.nn.l2_loss(self.advantage)				# minimize value error
@@ -68,10 +69,12 @@ class a2c:
 		return value
         
 	def train_actor(self, observations, actions, R, step):
-		[_, policyloss]=self.sess.run([self.actor_optimizer, self.log_policyloss], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})
+		# for i in range(1000):
+		[_, policyloss]=self.sess.run([self.actor_optimizer, self.log_policyloss], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})	
 		self.writer.add_summary(policyloss, step)
 
 	def train_critic(self, observations, R, step):      
+		# for i in range(1000):
 		[_, criticloss]=self.sess.run([self.critic_optimizer, self.log_criticloss], feed_dict={self.observation:observations, self.R:R})
 		self.writer.add_summary(criticloss, step)
 
