@@ -39,14 +39,15 @@ class RL_Agent():
 				print(" episode:",self.episode, " reward:",self.total_reward," took {} steps".format(t))
 				self.model.log_details(np.array([[self.total_reward]]),self.episode)
 				self.total_reward=0
+				self.R_terminal=0
 				break
 			#TODO:makesure that memory dont overflow by stopping for n steps
 			#if (t>max_no_steps):
-				#self.R=critic   #for terminal state give R as 0
+				#self.R_terminal=critic   #for terminal state give R as 0
 	def run(self):
 		while self.episode<max_no_episodes:
 			self.run_episode()
-			self.bellman_update()
+			self.update_R()
 			self.model.train_actor(self.observations,self.actions,self.R,self.episode)
 			self.model.train_critic(self.observations,self.R,self.episode)
 			self.EPS-=d_eps
@@ -68,8 +69,14 @@ class RL_Agent():
 			self.R.append([t])
 			self.R_terminal=t
 		self.R=np.flip(self.R,axis=0)
-		# self.R=self.R.reverse()
 
+	def update_R(self):
+		for i in range(len(self.r),0,-1):
+			t=self.r[i-1]+GAMMA*self.R_terminal
+			self.R.append([t])
+			self.R_terminal=self.model.predict_value(np.expand_dims(self.observations[i-1],axis=0))
+		self.R=np.flip(self.R,axis=0)
+			
 	def predict_action(self,prob):
 		#here we use epsilon greedy exploration by tossing a coin
 		action=np.amax(prob)

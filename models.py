@@ -27,8 +27,8 @@ class a2c:
 		#advantage and losses
 		self.logp = tf.log(tf.reduce_sum(self.p*self.a_t, axis=1, keep_dims=True) + 1e-10)
 		self.advantage= self.R - self.V
-		self.loss_policy = - self.logp * tf.stop_gradient(self.advantage)
-		self.loss_value  = LOSS_V * tf.square(self.advantage)				# minimize value error
+		self.loss_policy = - tf.reduce_sum(self.logp * tf.stop_gradient(self.advantage))
+		self.loss_value  = LOSS_V * tf.nn.l2_loss(self.advantage)				# minimize value error
 		#will try entropy loss afterwards
         #self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
 		#self.loss_total = tf.reduce_mean(self.loss_policy + self.loss_value + self.entropy)
@@ -39,8 +39,8 @@ class a2c:
 		self.sess=tf.Session()
 		self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
 		self.log_reward=tf.summary.scalar("totalreward", tf.reduce_sum(self.total_reward))
-		self.log_policyloss=tf.summary.scalar("actor_loss",tf.reduce_mean(self.loss_policy))
-		self.log_criticloss=tf.summary.scalar("critic_loss",tf.reduce_mean(self.loss_value))
+		self.log_policyloss=tf.summary.scalar("actor_loss",self.loss_policy)
+		self.log_criticloss=tf.summary.scalar("critic_loss",self.loss_value)
 		#self.summary=tf.summary.merge_all()
 
 		self.init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
@@ -52,7 +52,7 @@ class a2c:
 		self.saver.save(self.sess, './tmp/model.ckpt', global_step=step)
 
 	def predict_value(self,observation):
-		v=self.sess.run(self.v,feed_dict={self.observation:observation})
+		v=self.sess.run(self.V,feed_dict={self.observation:observation})
 		return v
 
 	def predict_action_prob(self,observation):
