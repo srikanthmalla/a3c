@@ -1,5 +1,6 @@
 from models import a2c
 import numpy as np
+import time
 from params import *
 from helper_funcs import onehot
 from gym import wrappers
@@ -45,6 +46,7 @@ class RL_Agent():
 			#if (t>max_no_steps):
 				#self.R_terminal=critic   #for terminal state give R as 0
 	def run(self):
+		start = time.time()
 		while self.episode<max_no_episodes:
 			self.run_episode()
 			self.bellman_update()
@@ -56,6 +58,9 @@ class RL_Agent():
 			if self.episode%ckpt_episode==0:
 				self.model.save(self.episode)
 				print("saved model at episode {}".format(self.episode))
+		end = time.time()
+		print("took:",end - start)
+
 	def episode_over(self):
 		self.observations=[]
 		self.actions=[]
