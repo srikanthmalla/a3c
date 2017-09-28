@@ -74,12 +74,12 @@ class RL_Agent():
 		for i in range(len(self.r),0,-1):
 			t=self.r[i-1]+GAMMA*self.R_terminal
 			self.R.append([t])
-			self.R_terminal=self.model.predict_value(np.expand_dims(self.observations[i-1],axis=0))
+			self.R_terminal=self.model.predict_value([self.observations[i-1]])
 		self.R=np.flip(self.R,axis=0)
 			
 	def predict_action(self,prob):
 		#here we use epsilon greedy exploration by tossing a coin
-		action=np.amax(prob)
-		if np.random.uniform > self.EPS:
+		action=np.argmax(prob)
+		if np.random.uniform < self.EPS:
 			action=self.env.action_space.sample()
 		return action
