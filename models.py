@@ -5,13 +5,6 @@ from gym import wrappers
 import numpy as np
 from networks import FCN_one_hidden
 
-class a3c:
-    def __init__(self):
-        self.threads=2
-        self.batch_size=100
-        #TODO abstract class of a2c
-
-
 class a2c:
 	def __init__(self):
 		# <s,a,R,s_> information collection by acting in environment
@@ -19,7 +12,7 @@ class a2c:
 		self.R= tf.placeholder(tf.float32,shape=[None,1]) #not immediate but n step discounted
 		self.a_t=tf.placeholder(tf.float32,shape=[None,no_of_actions]) #which action was taken 
 		self.total_reward=tf.placeholder(tf.float32,shape=[None,1])
-                
+
 		# act in environment and critisize the actions
 		self.p= tf.nn.softmax(self.actor(self.observation), name='action_probability')#probabilities of action predicted
 		self.V= self.critic(self.observation) #value predicted
@@ -85,3 +78,17 @@ class a2c:
 	def log_details(self, total_reward, step):
 		tot_r=self.sess.run(self.log_reward, feed_dict={self.total_reward:total_reward})   
 		self.writer.add_summary(tot_r, step) 
+
+class a3c(a2c):
+    def __init__(self):
+        super.__init__()
+        self.threads = THREADS
+        self.batch_size = BATCH_SIZE
+        self.thread_id = tf.placeholder(tf.float32,shape=[None,1])
+        
+class trpo():
+	pass
+
+        
+        
+

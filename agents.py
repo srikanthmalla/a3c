@@ -1,20 +1,23 @@
-from models import a2c
+from models import *
 import numpy as np
 import time
 from params import *
 from helper_funcs import onehot
 from gym import wrappers
 
-
 #to get same random for rerun
 np.random.seed(1234)
+if use_model=='a2c':
+	model = a2c()
+elif use_model=='a3c':
+	model = a3c()
+else:
+	model = trpo()
 
 class a2c_agent():
 	def __init__(self):
 		self.env = Environment
 		self.render=render
-		if use_model=='a2c': 
-			self.model=a2c()
 		self.episode=1
 		self.total_reward=0
 		self.episode_over()
@@ -31,7 +34,7 @@ class a2c_agent():
 			if (self.render):
 				self.env.render()#show the game, xlib error with multiple threads
 			# action = self.env.action_space.sample() # your agent here (this takes random actions)
-			action_prob=self.model.predict_action_prob([observation])
+			action_prob=model.predict_action_prob([observation])
 			action=self.predict_action(action_prob,t)
 			self.observations.append(observation)
 			self.actions.append(onehot(action,no_of_actions))
@@ -42,7 +45,7 @@ class a2c_agent():
 			observation=observation_new
 			if done:
 				print(" episode:",self.episode,"eps:","{0:.2f}".format(self.EPS), " reward:",self.total_reward," took {} steps".format(t))
-				self.model.log_details(np.array([[self.total_reward]]),self.episode)
+				model.log_details(np.array([[self.total_reward]]),self.episode)
 				self.total_reward=0
 				self.R_terminal=0
 				break
@@ -54,13 +57,13 @@ class a2c_agent():
 		while self.episode<max_no_episodes:
 			self.run_episode()
 			self.bellman_update()
-			self.model.train_actor(self.observations,self.actions,self.R,self.episode)
-			self.model.train_critic(self.observations,self.R,self.episode)
+			model.train_actor(self.observations,self.actions,self.R,self.episode)
+			model.train_critic(self.observations,self.R,self.episode)
 			self.EPS-=d_eps
 			self.episode+=1
 			self.episode_over()
 			if self.episode%ckpt_episode==0:
-				self.model.save(self.episode)
+				model.save(self.episode)
 				print("saved model at episode {}".format(self.episode))
 		end = time.time()
 		print("took:",end - start)
@@ -85,3 +88,11 @@ class a2c_agent():
 		if np.random.uniform() < self.EPS:
 			action=self.env.action_space.sample()
 		return action
+
+class a3c_agent(a2c_agent):
+	def __init__(self):
+		super.__init__()
+		#TODO: Threading needs to be done on this class and model needs to intialized only once, so model is made as global as we do threading on a3c.
+
+class trpo_agent():
+	pass

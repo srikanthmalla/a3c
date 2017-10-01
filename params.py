@@ -28,3 +28,7 @@ eps_start = 0.9
 eps_stop  = 0.0
 eps_steps = max_no_episodes
 d_eps= (eps_start-eps_stop)/eps_steps
+
+#A3C details
+THREADS=2
+BATCH_SIZE=100
