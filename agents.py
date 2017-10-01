@@ -5,7 +5,11 @@ from params import *
 from helper_funcs import onehot
 from gym import wrappers
 
-class RL_Agent():
+
+#to get same random for rerun
+np.random.seed(1234)
+
+class a2c_agent():
 	def __init__(self):
 		self.env = Environment
 		self.render=render

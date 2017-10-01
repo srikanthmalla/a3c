@@ -1,7 +1,7 @@
 from params import *
-from agent import RL_Agent
+from agents import a2c_agent
 
-Agent=RL_Agent()
+Agent=a2c_agent()
 Agent.run()
 print("Training Finished...")
 

@@ -5,9 +5,12 @@ from gym import wrappers
 import numpy as np
 from networks import FCN_one_hidden
 
+class a3c:
+    def __init__(self):
+        self.threads=2
+        self.batch_size=100
+        #TODO abstract class of a2c
 
-# reproducible
-np.random.seed(1234)
 
 class a2c:
 	def __init__(self):
