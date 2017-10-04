@@ -14,15 +14,17 @@ class cat(Thread):
 #threading with multiple inheritance
 #to use super we need to use object for which we should not use args for init
 #if you don't want just seperately initialise all the parent classes
-class dog(object):
+class dog():
     def __init__(self):
-        super(dog,self).__init__()
+        #super(dog,self).__init__()
         self.weight=30
     def shout(self):
         print("bow")
 class hound(dog,Thread):
     def __init__(self):
-        super(hound,self).__init__()
+        #super(hound,self).__init__()
+        dog.__init__(self)
+        Thread.__init__(self)
         self.weight=60 #overwriting the dog weight
     def shout(self):
         print("%s bow"%(self.getName()))
