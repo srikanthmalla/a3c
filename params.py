@@ -18,7 +18,7 @@ tf_logdir='./graphs/aclr_'+str(actor_lr)+',cr_lr'+str(critic_lr)+'/'
 LOSS_V=1.0
 
 #RL_agent details
-use_model='a2c'
+use_model='a3c'
 max_no_episodes=1000
 ckpt_episode=100
 GAMMA = 0.99

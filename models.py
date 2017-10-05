@@ -5,14 +5,14 @@ from gym import wrappers
 import numpy as np
 from networks import FCN_one_hidden
 
-class a2c:
+class a2c():
 	def __init__(self):
 		# <s,a,R,s_> information collection by acting in environment
 		self.observation=tf.placeholder(tf.float32, shape=input_shape)
 		self.R= tf.placeholder(tf.float32,shape=[None,1]) #not immediate but n step discounted
 		self.a_t=tf.placeholder(tf.float32,shape=[None,no_of_actions]) #which action was taken 
 		self.total_reward=tf.placeholder(tf.float32,shape=[None,1])
-
+                self.id='a2c'#default 
 		# act in environment and critisize the actions
 		self.p= tf.nn.softmax(self.actor(self.observation), name='action_probability')#probabilities of action predicted
 		self.V= self.critic(self.observation) #value predicted
@@ -34,10 +34,11 @@ class a2c:
 		
 		#session and initialization
 		self.sess=tf.Session()
-		self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
-		self.log_reward=tf.summary.scalar("totalreward", tf.reduce_sum(self.total_reward))
-		self.log_policyloss=tf.summary.scalar("actor_loss",self.loss_policy)
-		self.log_criticloss=tf.summary.scalar("critic_loss",self.loss_value)
+                with tf.name_scope(self.id):
+		    self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
+		    self.log_reward=tf.summary.scalar("totalreward", tf.reduce_sum(self.total_reward))
+		    self.log_policyloss=tf.summary.scalar("actor_loss",self.loss_policy)
+		    self.log_criticloss=tf.summary.scalar("critic_loss",self.loss_value)
 		#self.summary=tf.summary.merge_all()
 
 		self.init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
@@ -81,11 +82,10 @@ class a2c:
 
 class a3c(a2c):
     def __init__(self):
-        super.__init__()
+        a2c.__init__(self)
         self.threads = THREADS
         self.batch_size = BATCH_SIZE
-        self.thread_id = tf.placeholder(tf.float32,shape=[None,1])
-        
+
 class trpo():
 	pass
 

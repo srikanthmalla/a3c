@@ -4,7 +4,7 @@ import time
 from params import *
 from helper_funcs import onehot
 from gym import wrappers
-
+from threading import Thread
 #to get same random for rerun
 np.random.seed(1234)
 if use_model=='a2c':
@@ -89,9 +89,10 @@ class a2c_agent():
 			action=self.env.action_space.sample()
 		return action
 
-class a3c_agent(a2c_agent):
+class a3c_agent(a2c_agent,Thread):
 	def __init__(self):
-		super.__init__()
+		a2c_agent.__init__(self)
+                Thread.__init__(self)
 		#TODO: Threading needs to be done on this class and model needs to intialized only once, so model is made as global as we do threading on a3c.
 
 class trpo_agent():
