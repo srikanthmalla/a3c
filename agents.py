@@ -45,14 +45,16 @@ class a2c_agent():
 			observation=observation_new
 			if done:
 				print(" episode:",self.episode,"eps:","{0:.2f}".format(self.EPS), " reward:",self.total_reward," took {} steps".format(t))
-				model.log_details(np.array([[self.total_reward]]),self.episode)
+				model.id=self.getName()
+                                model.log_details(np.array([[self.total_reward]]),self.episode)
 				self.total_reward=0
 				self.R_terminal=0
 				break
 			#TODO:makesure that memory dont overflow by stopping for n steps
 			#if (t>max_no_steps):
 				#self.R_terminal=critic   #for terminal state give R as 0
-	def run(self):
+        
+        def run(self):
 		start = time.time()
 		while self.episode<max_no_episodes:
 			self.run_episode()

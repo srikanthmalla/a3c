@@ -3,6 +3,7 @@ from agents import *
 
 if use_model=='a2c':
     Agent = a2c_agent()
+    Agent.run()
 elif use_model=='a3c':
     agents=[a3c_agent() for i in range(THREADS)]
     for agent in agents:
@@ -12,7 +13,6 @@ elif use_model=='a3c':
 else:
     Agent = trpo_agent()
 	
-Agent.run()
 print("Training Finished...")
 
 
