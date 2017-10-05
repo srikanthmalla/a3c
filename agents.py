@@ -93,7 +93,6 @@ class a3c_agent(a2c_agent,Thread):
 	def __init__(self):
 		a2c_agent.__init__(self)
                 Thread.__init__(self)
-		#TODO: Threading needs to be done on this class and model needs to intialized only once, so model is made as global as we do threading on a3c.
 
 class trpo_agent():
 	pass
