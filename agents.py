@@ -16,7 +16,7 @@ else:
 
 class a2c_agent():
 	def __init__(self):
-		self.env = Environment
+                self.env=gym.make(env_name)
 		self.render=render
 		self.episode=1
 		self.total_reward=0
@@ -92,7 +92,7 @@ class a2c_agent():
 class a3c_agent(a2c_agent,Thread):
 	def __init__(self):
 		a2c_agent.__init__(self)
-                Thread.__init__(self)
-
+		Thread.__init__(self)
+                
 class trpo_agent():
 	pass
