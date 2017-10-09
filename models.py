@@ -11,8 +11,7 @@ class a2c():
 		self.observation=tf.placeholder(tf.float32, shape=input_shape)
 		self.R= tf.placeholder(tf.float32,shape=[None,1]) #not immediate but n step discounted
 		self.a_t=tf.placeholder(tf.float32,shape=[None,no_of_actions]) #which action was taken 
-		self.total_reward=tf.placeholder(tf.float32,shape=[None,1])
-                self.id=tf.placeholder(tf.string)
+		# self.total_reward=tf.placeholder(tf.float32,shape=[None,1])
 		# act in environment and critisize the actions
 		self.p= tf.nn.softmax(self.actor(self.observation), name='action_probability')#probabilities of action predicted
 		self.V= self.critic(self.observation) #value predicted
@@ -27,18 +26,18 @@ class a2c():
 		self.loss_policy = - tf.reduce_sum(self.logp * tf.stop_gradient(self.advantage))
 		self.loss_value  = LOSS_V * tf.nn.l2_loss(self.advantage)				# minimize value error
 		#will try entropy loss afterwards
-                #self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
-                #self.loss_total = tf.reduce_mean(self.loss_policy + self.loss_value + self.entropy)
+		#self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
+		#self.loss_total = tf.reduce_mean(self.loss_policy + self.loss_value + self.entropy)
 		self.actor_optimizer = tf.train.AdamOptimizer(learning_rate=actor_lr).minimize(self.loss_policy)
 		self.critic_optimizer = tf.train.AdamOptimizer(learning_rate=critic_lr).minimize(self.loss_value)
 		
 		#session and initialization
 		self.sess=tf.Session()
-                with tf.name_scope('a2c'):
-                    self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
-		    self.log_reward=tf.summary.scalar("totalreward", tf.reduce_sum(self.total_reward))
-		    self.log_policyloss=tf.summary.scalar("actor_loss",self.loss_policy)
-		    self.log_criticloss=tf.summary.scalar("critic_loss",self.loss_value)
+				
+		self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
+		# self.log_reward=tf.summary.scalar(self.id+"totalreward", tf.reduce_sum(self.total_reward))
+		# self.log_policyloss=tf.summary.scalar("actor_loss",self.loss_policy)
+		# self.log_criticloss=tf.summary.scalar("critic_loss",self.loss_value)
 		#self.summary=tf.summary.merge_all()
 
 		self.init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
@@ -64,31 +63,34 @@ class a2c():
 	def critic(self,inputs):
 		value=FCN_one_hidden(inputs,10,1,'value/')
 		return value
-        
-	def train_actor(self, observations, actions, R, step):
-		# for i in range(1000):
-                [_, policyloss]=self.sess.run([self.actor_optimizer, self.log_policyloss], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})	
+		
+	def train_actor(self, observations, actions, R, step,tag):
+		[_, loss_policy]=self.sess.run([self.actor_optimizer, self.loss_policy], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})	
+		policyloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/actorloss',
+simple_value=long(loss_policy))])
 		self.writer.add_summary(policyloss, step)
 
-	def train_critic(self, observations, R, step):      
-		# for i in range(1000):
-                [_, criticloss]=self.sess.run([self.critic_optimizer, self.log_criticloss], feed_dict={self.observation:observations, self.R:R})
+	def train_critic(self, observations, R, step,tag):      
+		[_, loss_value]=self.sess.run([self.critic_optimizer, self.loss_value], feed_dict={self.observation:observations, self.R:R})
+		criticloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/criticloss',
+simple_value=long(loss_value))])
 		self.writer.add_summary(criticloss, step)
 
 	#useful to log other details like features, rewards
-	def log_details(self, total_reward, step):
-                tot_r=self.sess.run(self.log_reward, feed_dict={self.total_reward:total_reward})   
+	def log_details(self, total_reward, step,tag):
+		tot_r = tf.Summary(value=[tf.Summary.Value(tag=tag+'/reward',
+simple_value=total_reward)])
 		self.writer.add_summary(tot_r, step) 
 
 class a3c(a2c):
-    def __init__(self):
-        a2c.__init__(self)
-        self.threads = THREADS
-        self.batch_size = BATCH_SIZE
+	def __init__(self):
+		a2c.__init__(self)
+		self.threads = THREADS
+		self.batch_size = BATCH_SIZE
 
 class trpo():
 	pass
 
-        
-        
+		
+		
 
