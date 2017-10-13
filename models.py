@@ -67,13 +67,13 @@ class a2c():
 	def train_actor(self, observations, actions, R, step,tag):
 		[_, loss_policy]=self.sess.run([self.actor_optimizer, self.loss_policy], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})	
 		policyloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/actorloss',
-simple_value=long(loss_policy))])
+simple_value=np.float32(loss_policy))])
 		self.writer.add_summary(policyloss, step)
 
 	def train_critic(self, observations, R, step,tag):      
 		[_, loss_value]=self.sess.run([self.critic_optimizer, self.loss_value], feed_dict={self.observation:observations, self.R:R})
 		criticloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/criticloss',
-simple_value=long(loss_value))])
+simple_value=np.float32(loss_value))])
 		self.writer.add_summary(criticloss, step)
 
 	#useful to log other details like features, rewards
