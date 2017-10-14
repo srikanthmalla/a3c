@@ -1,5 +1,10 @@
 #openai gym environments
-env_name="CartPole-v0"
+# env_name="CartPole-v0"
+# use_net='fc_1'#fc_1, lenet, VGG
+#---------
+env_name="Breakout-v4"
+use_net='lenet'
+#-------
 import gym
 Environment=gym.make(env_name)
 create_video= False
@@ -18,7 +23,7 @@ tf_logdir='./graphs/aclr_'+str(actor_lr)+',cr_lr'+str(critic_lr)+'/'
 LOSS_V=1.0
 
 #RL_agent details
-use_model='a3c'
+use_model='a2c'
 max_no_episodes=1000
 ckpt_episode=100
 GAMMA = 0.99

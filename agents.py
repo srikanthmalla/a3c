@@ -27,6 +27,8 @@ class a2c_agent():
 		print('observations shape:',observation_shape)
 		#print('action details', action_details)
 		print('no of actions:', no_of_actions)
+	def getName(self):
+			return self.__class__.__name__
 	def run_episode(self):
 		observation = self.env.reset()
 		t = 0   #to calculate time steps
@@ -49,14 +51,18 @@ class a2c_agent():
 				self.R_terminal=0
 				break
 			#TODO:makesure that memory dont overflow by stopping for n steps
-			#if (t>max_no_steps):
-				#self.R_terminal=critic   #for terminal state give R as 0
-		
+			if (t>5):
+				print(" episode:",self.episode,"eps:","{0:.2f}".format(self.EPS), " reward:",self.total_reward," took {} steps".format(t))
+				model.log_details(self.total_reward,self.episode,self.getName())
+				self.total_reward=0
+				self.R_terminal=model.predict_value([observation])   #for terminal state give R as 0
+				break
 	def run(self):
 		start = time.time()
 		while self.episode<max_no_episodes:
 			self.run_episode()
 			self.bellman_update()
+			self.R=np.reshape(self.R,[np.shape(self.R)[0],1])
 			model.train_actor(self.observations,self.actions,self.R,self.episode,self.getName())
 			model.train_critic(self.observations,self.R,self.episode,self.getName())
 			self.EPS-=d_eps

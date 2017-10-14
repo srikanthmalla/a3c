@@ -3,8 +3,14 @@ from params import *
 import gym, time, threading, random
 from gym import wrappers
 import numpy as np
-from networks import FCN_one_hidden
-
+from networks import *
+if use_net=='fc_1':
+	net=FCN_one_hidden
+elif use_net=='lenet':
+	net=lenet
+elif use_net=='VGG':
+	net=VGG
+	
 class a2c():
 	def __init__(self):
 		# <s,a,R,s_> information collection by acting in environment
@@ -57,11 +63,11 @@ class a2c():
 		return a
 
 	def actor(self,inputs): #modified vgg net
-		actions=FCN_one_hidden(inputs,10,no_of_actions,'actor/')
+		actions=net(inputs,10,no_of_actions,'actor/')
 		return actions
 	
 	def critic(self,inputs):
-		value=FCN_one_hidden(inputs,10,1,'value/')
+		value=net(inputs,10,1,'value/')
 		return value
 		
 	def train_actor(self, observations, actions, R, step,tag):
