@@ -32,9 +32,9 @@ class a2c():
 		self.loss_policy = - tf.reduce_sum(self.logp * tf.stop_gradient(self.advantage))
 		self.loss_value  = LOSS_V * tf.nn.l2_loss(self.advantage)				# minimize value error
 		#will try entropy loss afterwards
-		#self.entropy = LOSS_ENTROPY * tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
+		self.entropy =  tf.reduce_sum(self.p * tf.log(self.p + 1e-10), axis=1, keep_dims=True)	# maximize entropy (regularization)
 		#self.loss_total = tf.reduce_mean(self.loss_policy + self.loss_value + self.entropy)
-		self.actor_optimizer = tf.train.AdamOptimizer(learning_rate=actor_lr).minimize(self.loss_policy)
+		self.actor_optimizer = tf.train.AdamOptimizer(learning_rate=actor_lr).minimize(self.loss_policy+self.entropy)
 		self.critic_optimizer = tf.train.AdamOptimizer(learning_rate=critic_lr).minimize(self.loss_value)
 		
 		#session and initialization
@@ -70,23 +70,32 @@ class a2c():
 		value=net(inputs,10,1,'value/')
 		return value
 		
-	def train_actor(self, observations, actions, R, step,tag):
+	def train_actor(self, observations, actions, R):
+		[_, loss_policy]=self.sess.run([self.actor_optimizer, self.loss_policy], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})	
+# 		policyloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/actorloss',
+# simple_value=np.float32(loss_policy))])
+# 		self.writer.add_summary(policyloss, step)
+
+	def train_critic(self, observations, R):      
+		[_, loss_value]=self.sess.run([self.critic_optimizer, self.loss_value], feed_dict={self.observation:observations, self.R:R})
+# 		criticloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/criticloss',
+# simple_value=np.float32(loss_value))])
+# 		self.writer.add_summary(criticloss, step)
+
+	#useful to log other details like features, rewards
+	def log_details(self, total_reward, observations, actions, R, step,tag):
+		tot_r = tf.Summary(value=[tf.Summary.Value(tag=tag+'/reward',
+simple_value=total_reward)])
+		self.writer.add_summary(tot_r, step) 
 		[_, loss_policy]=self.sess.run([self.actor_optimizer, self.loss_policy], feed_dict={self.observation:observations, self.a_t:actions, self.R:R})	
 		policyloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/actorloss',
 simple_value=np.float32(loss_policy))])
 		self.writer.add_summary(policyloss, step)
-
-	def train_critic(self, observations, R, step,tag):      
 		[_, loss_value]=self.sess.run([self.critic_optimizer, self.loss_value], feed_dict={self.observation:observations, self.R:R})
 		criticloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/criticloss',
 simple_value=np.float32(loss_value))])
 		self.writer.add_summary(criticloss, step)
 
-	#useful to log other details like features, rewards
-	def log_details(self, total_reward, step,tag):
-		tot_r = tf.Summary(value=[tf.Summary.Value(tag=tag+'/reward',
-simple_value=total_reward)])
-		self.writer.add_summary(tot_r, step) 
 
 class a3c(a2c):
 	def __init__(self):

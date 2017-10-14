@@ -20,7 +20,7 @@ class a2c_agent():
 		self.render=render
 		self.episode=1
 		self.total_reward=0
-		self.episode_over()
+		self.clear()
 		self.EPS=eps_start
 		if create_video:	
 			self.env = wrappers.Monitor(self.env, './tmp',force=True)
@@ -40,41 +40,44 @@ class a2c_agent():
 			self.observations.append(observation)
 			self.actions.append(onehot(action,no_of_actions))
 			observation_new, reward, done, info = self.env.step(action)
-			self.r.append(reward)
+			self.total_reward+=reward	
+			self.r.append(reward)	
 			t=t+1
-			self.total_reward+=reward
-			observation=observation_new
 			if done:
+				self.bellman_update() #can be used for batch
 				print(" episode:",self.episode,"eps:","{0:.2f}".format(self.EPS), " reward:",self.total_reward," took {} steps".format(t))
-				model.log_details(self.total_reward,self.episode,self.getName())
+				self.R=np.reshape(self.R,(np.shape(self.R)[0],1))
+				model.log_details(self.total_reward,self.observations,self.actions,self.R,self.episode,self.getName())
+				self.train()
 				self.total_reward=0
 				self.R_terminal=0
 				break
-			#TODO:makesure that memory dont overflow by stopping for n steps
-			if (t>5):
-				print(" episode:",self.episode,"eps:","{0:.2f}".format(self.EPS), " reward:",self.total_reward," took {} steps".format(t))
-				model.log_details(self.total_reward,self.episode,self.getName())
-				self.total_reward=0
-				self.R_terminal=model.predict_value([observation])   #for terminal state give R as 0
-				break
+			else:
+				if (t%10 == 0):
+					self.bellman_update()
+					self.train()
+				observation=observation_new
+
 	def run(self):
 		start = time.time()
 		while self.episode<max_no_episodes:
 			self.run_episode()
-			self.bellman_update()
-			self.R=np.reshape(self.R,[np.shape(self.R)[0],1])
-			model.train_actor(self.observations,self.actions,self.R,self.episode,self.getName())
-			model.train_critic(self.observations,self.R,self.episode,self.getName())
+			# self.train()#for a batch of complete episode
 			self.EPS-=d_eps
 			self.episode+=1
-			self.episode_over()
 			if self.episode%ckpt_episode==0:
 				model.save(self.episode)
 				print("saved model at episode {}".format(self.episode))
 		end = time.time()
 		print("took:",end - start)
 
-	def episode_over(self):
+	def train(self):
+		self.R=np.reshape(self.R,[np.shape(self.R)[0],1])
+		model.train_actor(self.observations,self.actions,self.R)
+		model.train_critic(self.observations,self.R)
+		self.clear()
+
+	def clear(self):
 		self.observations=[]
 		self.actions=[]
 		self.R=[]
@@ -82,12 +85,14 @@ class a2c_agent():
 		self.R_terminal=0
 
 	def bellman_update(self):
+		self.R=[]
 		for i in range(len(self.r),0,-1):
-			t=self.r[i-1]+GAMMA*self.R_terminal
+			t=self.r[i-1]+self.R_terminal
 			self.R.append([t])
-			self.R_terminal=t
-		self.R=np.flip(self.R,axis=0)
-
+			# self.R_terminal=t #normal bellman update
+			self.R_terminal=model.predict_value([self.observations[i-1]]) #batch bootstrap
+		self.R=np.flip(self.R,axis=0)	
+	
 	def predict_action(self,prob,t):
 		#here we use epsilon greedy exploration by tossing a coin
 		action=np.argmax(prob)
