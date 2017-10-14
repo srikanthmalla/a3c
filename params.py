@@ -1,3 +1,4 @@
+use_model='a2c'
 #openai gym environments
 env_name="CartPole-v0"
 use_net='fc_1'#fc_1, lenet, VGG
@@ -17,14 +18,13 @@ render=False
 input_shape=(None,)+observation_shape
 output_shape = (None,)+ (no_of_actions,)
 batch_size=1
-actor_lr=1E-2
-critic_lr=1E-2
+actor_lr=1E-3
+critic_lr=1E-3
 tf_logdir='./graphs/aclr_'+str(actor_lr)+',cr_lr'+str(critic_lr)+'/'
-LOSS_V=100
+LOSS_V=1000
 
 #RL_agent details
-use_model='a2c'
-max_no_episodes=2000
+max_no_episodes=3000
 ckpt_episode=100
 GAMMA = 0.99
 

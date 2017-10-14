@@ -44,15 +44,16 @@ class a2c_agent():
 			self.r.append(reward)	
 			t=t+1
 			if done:
+				self.R_terminal=0
 				self.bellman_update() #can be used for batch
 				print(" episode:",self.episode,"eps:","{0:.2f}".format(self.EPS), " reward:",self.total_reward," took {} steps".format(t))
 				self.R=np.reshape(self.R,(np.shape(self.R)[0],1))
 				model.log_details(self.total_reward,self.observations,self.actions,self.R,self.episode,self.getName())
 				self.train()
 				self.total_reward=0
-				self.R_terminal=0
 				break
 			else:
+				self.R_terminal=model.predict_value([observation_new])
 				if (t%10 == 0):
 					self.bellman_update()
 					self.train()
