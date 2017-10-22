@@ -52,7 +52,11 @@ class a2c():
 		self.default_graph.finalize() # avoid modifications
 	
 	def save(self,step):
-		self.saver.save(self.sess, './tmp/model.ckpt', global_step=step)
+		self.saver.save(self.sess, ckpt_dir)
+		
+	def load(self):
+		self.saver.restore(self.sess,ckpt_dir)
+		print("model restored")
 
 	def predict_value(self,observation):
 		v=self.sess.run(self.V,feed_dict={self.observation:observation})

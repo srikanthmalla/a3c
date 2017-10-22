@@ -1,14 +1,15 @@
-use_model='a2c'
+use_model='a3c'
+mode='test'
 #openai gym environments
+#--------
 env_name="CartPole-v0"
 use_net='fc_1'#fc_1, lenet, VGG
 #---------
-# env_name="Breakout-v4"
+# env_name="Breakout-v0"
 # use_net='lenet'
 #-------
 import gym
 Environment=gym.make(env_name)
-create_video= False
 no_of_actions= Environment.action_space.n
 observation_shape=Environment.observation_space.shape
 #action_details=Environment.unwrapped.get_action_meanings() #cartpole doesnt has this action meanings but breakout does
@@ -18,22 +19,37 @@ render=False
 input_shape=(None,)+observation_shape
 output_shape = (None,)+ (no_of_actions,)
 batch_size=1
-actor_lr=1E-3
-critic_lr=1E-3
+actor_lr=1E-2
+critic_lr=1E-2
 tf_logdir='./graphs/aclr_'+str(actor_lr)+',cr_lr'+str(critic_lr)+'/'
 LOSS_V=1000
-
+dir_="./tmp/"+env_name+"/"+use_model
+import os
+if not os.path.exists(dir_):
+	os.makedirs(dir_)
+ckpt_dir=dir_+"/model.ckpt"
 #RL_agent details
 max_no_episodes=3000
 ckpt_episode=100
 GAMMA = 0.99
 
 #epsilon greedy, not the learning rate
-eps_start = 0.9
+if mode=='train':
+	eps_start = 0.9
+	create_video= False
+else:
+	eps_start = 0.0
+	create_video= True
+
 eps_stop  = 0.0
 eps_steps = max_no_episodes
 d_eps= (eps_start-eps_stop)/eps_steps
 
 #A3C details
 THREADS=2
-BATCH_SIZE=100
+
+
+##observations
+# Episodic batch with lr=E-2, Loss_v=100, Epochs=2K, A2C algo works on Cart-pole. 
+# To work with A2C on cart-pole, when learning online with batch of 10 it takes 3K epochs with Loss_V=1000 and lr=E-3
+# To work with A3C on cart-pole, When learning online with batch of 10 it takes 2K epochs with Loss_V=1000 and lr=E-2, THREADS=2  

@@ -23,7 +23,7 @@ class a2c_agent():
 		self.clear()
 		self.EPS=eps_start
 		if create_video:	
-			self.env = wrappers.Monitor(self.env, './tmp',force=True)
+			self.env = wrappers.Monitor(self.env, dir_,force=True)
 		print('observations shape:',observation_shape)
 		#print('action details', action_details)
 		print('no of actions:', no_of_actions)
@@ -35,6 +35,8 @@ class a2c_agent():
 		while True:
 			if (self.render):
 				self.env.render()#show the game, xlib error with multiple threads
+				if mode=='test':
+					time.sleep(0.2)
 			action_prob=model.predict_action_prob([observation])
 			action=self.predict_action(action_prob,t)
 			self.observations.append(observation)
@@ -53,8 +55,8 @@ class a2c_agent():
 				self.total_reward=0
 				break
 			else:
-				self.R_terminal=model.predict_value([observation_new])
 				if (t%10 == 0):
+					self.R_terminal=model.predict_value([observation_new])
 					self.bellman_update()
 					self.train()
 				observation=observation_new
@@ -100,7 +102,11 @@ class a2c_agent():
 		if np.random.uniform() < self.EPS:
 			action=self.env.action_space.sample()
 		return action
-
+	def test(self):
+		model.load()
+		self.render=True
+		self.run_episode()
+		print("done..")
 class a3c_agent(a2c_agent,Thread):
 	def __init__(self):
 		a2c_agent.__init__(self)

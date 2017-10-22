@@ -1,13 +1,26 @@
-# A3C (Asynchronous Advantage Actor Critic):
+# A3C (Asynchronous Advantage Actor Critic)
+
 Paper: https://arxiv.org/pdf/1602.01783v1.pdf
 ![alt text](algo.png)
 1. Run the main file:    `python main.py`
 
 2. To customize, change the `params.py` file.
 
+```
+#these are tested
+use_model='a3c' #a2c,a3c
+mode='test' #test, train
+env_name="CartPole-v0" #CartPole-vO
+use_net='fc_1' #for CartPole, 'lenet' for breakout
+
+```
+
 3. TF Records are created in folder `graphs/results`
 
-4. If you want to record video automatically, change param `create_video=True` in `params.py`. This works when there is only one thread (use it when testing). 
+4. During testing a video is recorded automatically and saved in .tmp/(env_name)/(use_model)/ . Similarly the checkpoint is saved in this directory.
 
-5. #### Status: 
-Image stacking needs to be done (otherwise it will be one to many mapping), use simplified network (currently using VGG).
+#### Status: 
+
+Feature Detection needs to be done.
+
+Image stacking needs to be done (otherwise it will be one to many mapping).
