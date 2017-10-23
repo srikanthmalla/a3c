@@ -105,7 +105,6 @@ class a3c(a2c):
 	def __init__(self):
 		a2c.__init__(self)
 		self.threads = THREADS
-		self.batch_size = BATCH_SIZE
 
 class trpo():
 	pass

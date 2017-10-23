@@ -1,20 +1,23 @@
-use_model='a3c'
-mode='test'
+use_model='human'#human, a2c, a3c
+mode='train'
 #openai gym environments
 #--------
-env_name="CartPole-v0"
-use_net='fc_1'#fc_1, lenet, VGG
+#env_name="CartPole-v0"
+#use_net='fc_1'#fc_1, lenet, VGG
 #---------
-# env_name="Breakout-v0"
-# use_net='lenet'
+env_name="Breakout-v0"
+use_net='lenet'
 #-------
 import gym
 Environment=gym.make(env_name)
 no_of_actions= Environment.action_space.n
 observation_shape=Environment.observation_space.shape
-#action_details=Environment.unwrapped.get_action_meanings() #cartpole doesnt has this action meanings but breakout does
 render=False
-
+##--------------
+action_details=Environment.unwrapped.get_action_meanings() #cartpole doesnt has this action meanings but breakout does
+print(action_details)
+print(Environment.action_space.sample())
+##--------------
 #tensorflow details
 input_shape=(None,)+observation_shape
 output_shape = (None,)+ (no_of_actions,)
@@ -29,9 +32,17 @@ if not os.path.exists(dir_):
 	os.makedirs(dir_)
 ckpt_dir=dir_+"/model.ckpt"
 #RL_agent details
-max_no_episodes=3000
-ckpt_episode=100
-GAMMA = 0.99
+if use_model=='human':
+    max_no_episodes=3
+    ckpt_episode=1
+else:
+    max_no_episodes=3000
+    ckpt_episode=100
+
+if env_name=='Breakout-v0':
+    GAMMA=1
+else:
+    GAMMA = 0.99
 
 #epsilon greedy, not the learning rate
 if mode=='train':
