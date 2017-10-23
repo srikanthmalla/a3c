@@ -45,6 +45,7 @@ class a2c_agent():
 			if use_model =='human':
 				self.record()
 				action=self.action
+				print("step:",t,end="\r")
 				# self.action=self.env.action_space.sample()
 				# print('action:',self.action)
 			else:
@@ -56,7 +57,6 @@ class a2c_agent():
 			self.total_reward+=reward	
 			self.r.append(reward)	
 			t=t+1
-			print(t)
 			if done:
 				self.R_terminal=0
 				self.bellman_update() #can be used for batch
