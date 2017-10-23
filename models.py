@@ -56,7 +56,7 @@ class a2c():
 		self.saver.save(self.sess, ckpt_dir)
 		
 	def load(self):
-		if os.path.isfile(ckpt_dir):
+		if os.path.isfile(ckpt_dir+".index"):
 			self.saver.restore(self.sess,ckpt_dir)
 			print("model restored")
 		else: 
