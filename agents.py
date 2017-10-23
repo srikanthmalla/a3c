@@ -75,6 +75,7 @@ class a2c_agent():
 
 	def run(self):
 		start = time.time()
+		model.load()
 		while self.episode<max_no_episodes:
 			self.run_episode()
 			# self.train()#for a batch of complete episode

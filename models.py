@@ -3,6 +3,7 @@ from params import *
 import gym, time, threading, random
 from gym import wrappers
 import numpy as np
+import os.path
 from networks import *
 if use_net=='fc_1':
 	net=FCN_one_hidden
@@ -55,8 +56,11 @@ class a2c():
 		self.saver.save(self.sess, ckpt_dir)
 		
 	def load(self):
-		self.saver.restore(self.sess,ckpt_dir)
-		print("model restored")
+		if os.path.isfile(ckpt_dir):
+			self.saver.restore(self.sess,ckpt_dir)
+			print("model restored")
+		else: 
+			print("nothing to load")
 
 	def predict_value(self,observation):
 		v=self.sess.run(self.V,feed_dict={self.observation:observation})
