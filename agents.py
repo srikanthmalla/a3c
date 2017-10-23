@@ -37,13 +37,13 @@ class a2c_agent():
 		while True:
 			if (self.render):
 				rgb=self.env.render('rgb_array')#show the game, xlib error with multiple threads
-				# print(np.shape(rgb))
 				upscaled= np.repeat(np.repeat(rgb, 4, axis=0), 4, axis=1)
 				self.viewer.imshow(upscaled)
-				if (mode=='test') or (use_model=='human'):
+				if (mode=='test'):
 					time.sleep(0.2)
 			if use_model =='human':
 				self.record()
+				model.visualize([observation])
 				action=self.action
 				print("step:",t,end="\r")
 				# self.action=self.env.action_space.sample()
@@ -134,7 +134,7 @@ class human_agent(a2c_agent):
 		self.action=0
 	def record(self):
 		keyboard.start_recording()
-		time.sleep(0.2)
+		time.sleep(0.4)
 		recorded=keyboard.stop_recording()
 		try:
 			action=recorded[0].name
@@ -153,8 +153,6 @@ class human_agent(a2c_agent):
 		start = time.time()
 		while self.episode<max_no_episodes:
 			self.run_episode()
-			print('h')
-			self.EPS-=d_eps
 			self.episode+=1
 			if self.episode%ckpt_episode==0:
 				model.save(self.episode)

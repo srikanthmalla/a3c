@@ -19,7 +19,7 @@ use_net='fc_1' #for CartPole, 'lenet' for breakout
 
 4. During testing a video is recorded automatically and saved in .tmp/(env_name)/(use_model)/ . Similarly the checkpoint is saved in this directory.
 
-5. When using human_agent, install keyboard module and use up arrow (fire, to start) and side arrows to move sidewise
+5. When using human_agent, install keyboard module and use up arrow (fire, to start) and side arrows to move sidewise. And run the program as sudo `sudo python main.py`
 
 #### Status: 
 

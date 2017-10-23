@@ -71,11 +71,11 @@ class a2c():
 		return a
 
 	def actor(self,inputs): #modified vgg net
-		actions=net(inputs,10,no_of_actions,'actor/')
+		actions, self.layers =net(inputs,10,no_of_actions,'actor/')
 		return actions
 	
 	def critic(self,inputs):
-		value=net(inputs,10,1,'value/')
+		value,_ =net(inputs,10,1,'value/')
 		return value
 		
 	def train_actor(self, observations, actions, R):
@@ -83,6 +83,12 @@ class a2c():
 # 		policyloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/actorloss',
 # simple_value=np.float32(loss_policy))])
 # 		self.writer.add_summary(policyloss, step)
+	def visualize(self,observation):
+		layers=self.sess.run(self.layers,feed_dict={self.observation:observation})
+		print(len(layers))
+		print(np.shape(layers[-1]))
+
+
 
 	def train_critic(self, observations, R):      
 		[_, loss_value]=self.sess.run([self.critic_optimizer, self.loss_value], feed_dict={self.observation:observations, self.R:R})
