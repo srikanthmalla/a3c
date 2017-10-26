@@ -29,7 +29,7 @@ LOSS_V=1000
 dir_="./tmp/"+env_name+"/"+use_model
 import os
 if not os.path.exists(dir_):
-	os.makedirs(dir_)
+    os.makedirs(dir_)
 ckpt_dir=dir_+"/model.ckpt"
 #RL_agent details
 if use_model=='human':
@@ -46,11 +46,11 @@ else:
 
 #epsilon greedy, not the learning rate
 if mode=='train':
-	eps_start = 0.9
-	create_video= False
+    eps_start = 0.9
+    create_video= False
 else:
-	eps_start = 0.0
-	create_video= True
+    eps_start = 0.0
+    create_video= True
 
 eps_stop  = 0.0
 eps_steps = max_no_episodes
@@ -59,6 +59,16 @@ d_eps= (eps_start-eps_stop)/eps_steps
 #A3C details
 THREADS=2
 
+##networks
+if use_net=='fc_1':
+    from networks.FCN_one_hidden import *
+    net=FCN_one_hidden
+elif use_net=='lenet':
+    from networks.lenet import *
+    net=lenet
+elif use_net=='VGG':
+    from networks.VGG import *
+    net=VGG
 
 ##observations
 # Episodic batch with lr=E-2, Loss_v=100, Epochs=2K, A2C algo works on Cart-pole. 
