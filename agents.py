@@ -37,17 +37,18 @@ class a2c_agent():
 		while True:
 			if (self.render):
 				rgb=self.env.render('rgb_array')#show the game, xlib error with multiple threads
-				upscaled= np.repeat(np.repeat(rgb, 4, axis=0), 4, axis=1)
+				#upscale and show the game
+				upscaled= rescale(rgb,4,4)
 				self.viewer.imshow(upscaled)
+				#visualization of lenet layers
+				out=model.visualize([observation])
+				plotter(out)
 				if (mode=='test'):
 					time.sleep(0.2)
 			if use_model =='human':
 				self.record()
-				model.visualize([observation])
 				action=self.action
 				print("step:",t,end="\r")
-				# self.action=self.env.action_space.sample()
-				# print('action:',self.action)
 			else:
 				action_prob=model.predict_action_prob([observation])
 				action=self.predict_action(action_prob,t)
@@ -126,7 +127,7 @@ class a3c_agent(a2c_agent,Thread):
 		Thread.__init__(self)
 
 import keyboard
-#this human agent mapping is for breakout
+#this human agent mapping is only for breakout
 class human_agent(a2c_agent):
 	def __init__(self):
 		a2c_agent.__init__(self)

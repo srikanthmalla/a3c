@@ -1,4 +1,4 @@
-use_model='human'#human, a2c, a3c
+use_model='a2c'#human, a2c, a3c
 mode='train'
 #openai gym environments
 #--------
