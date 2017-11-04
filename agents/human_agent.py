@@ -8,7 +8,7 @@ class human_agent(a2c_agent):
         self.action=0
     def record(self):
         keyboard.start_recording()
-        time.sleep(0.4)
+        time.sleep(0.2)
         recorded=keyboard.stop_recording()
         try:
             action=recorded[0].name

@@ -2,11 +2,11 @@ use_model='a2c'#human, a2c, a3c
 mode='train'
 #openai gym environments
 #--------
-#env_name="CartPole-v0"
-#use_net='fc_1'#fc_1, lenet, VGG
+env_name="CartPole-v0"
+use_net='fc_1'#fc_1, lenet, VGG
 #---------
-env_name="Breakout-v0"
-use_net='lenet'
+#env_name="Breakout-v0"
+#use_net='lenet'
 #-------
 import gym
 Environment=gym.make(env_name)
@@ -14,18 +14,18 @@ no_of_actions= Environment.action_space.n
 observation_shape=Environment.observation_space.shape
 render=False
 ##--------------
-action_details=Environment.unwrapped.get_action_meanings() #cartpole doesnt has this action meanings but breakout does
-print(action_details)
-print(Environment.action_space.sample())
+#action_details=Environment.unwrapped.get_action_meanings() #cartpole doesnt has this action meanings but breakout does
+#print(action_details)
+#print(Environment.action_space.sample())
 ##--------------
 #tensorflow details
 input_shape=(None,)+observation_shape
 output_shape = (None,)+ (no_of_actions,)
 batch_size=1
-actor_lr=1E-2
-critic_lr=1E-2
+actor_lr=1E-3
+critic_lr=1E-3
 tf_logdir='./graphs/aclr_'+str(actor_lr)+',cr_lr'+str(critic_lr)+'/'
-LOSS_V=1000
+LOSS_V=100.0#should be float
 dir_="./tmp/"+env_name+"/"+use_model
 import os
 if not os.path.exists(dir_):
@@ -36,7 +36,7 @@ if use_model=='human':
     max_no_episodes=3
     ckpt_episode=1
 else:
-    max_no_episodes=3000
+    max_no_episodes=2000
     ckpt_episode=100
 
 if env_name=='Breakout-v0':

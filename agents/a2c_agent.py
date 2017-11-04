@@ -11,7 +11,7 @@ np.random.seed(1234)
 if (use_model=='a2c') or (use_model=='human'):
     model = a2c()
 elif use_model=='a3c':
-    model = a3c()
+    model = a2c()
 else:
     model = trpo()
 
@@ -58,6 +58,7 @@ class a2c_agent():
             self.total_reward+=reward   
             self.r.append(reward)   
             t=t+1
+            observation=observation_new
             if done:
                 self.R_terminal=0
                 self.bellman_update() #can be used for batch
@@ -72,7 +73,6 @@ class a2c_agent():
                     self.R_terminal=model.predict_value([observation_new])
                     self.bellman_update()
                     self.train()
-                observation=observation_new
 
     def run(self):
         start = time.time()
@@ -106,7 +106,7 @@ class a2c_agent():
         for i in range(len(self.r),0,-1):
             t=self.r[i-1]+self.R_terminal
             self.R.append([t])
-            # self.R_terminal=t #normal bellman update
+            #self.R_terminal=t #normal bellman update
             self.R_terminal=model.predict_value([self.observations[i-1]]) #batch bootstrap
         self.R=np.flip(self.R,axis=0)   
     
@@ -122,4 +122,4 @@ class a2c_agent():
         self.run_episode()
         print("done..")
 
-    
+
