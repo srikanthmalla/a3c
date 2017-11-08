@@ -32,7 +32,7 @@ class a2c():
         
         #session and initialization
         self.sess=tf.Session()
-                
+        #writers
         self.writer = tf.summary.FileWriter(tf_logdir, self.sess.graph)
 
         self.init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
@@ -104,10 +104,10 @@ simple_value=total_reward)])
         self.writer.add_summary(tot_r, step) 
         [_, loss_policy]=self.sess.run([self.actor_optimizer, self.loss_policy], feed_dict={self.observation:observations, self.a_t:actions, self.R:R}) 
         policyloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/actorloss',
-simple_value=np.float32(loss_policy))])
+simple_value=float(loss_policy))])
         self.writer.add_summary(policyloss, step)
         [_, loss_value]=self.sess.run([self.critic_optimizer, self.loss_value], feed_dict={self.observation:observations, self.R:R})
         criticloss= tf.Summary(value=[tf.Summary.Value(tag=tag+'/criticloss',
-simple_value=np.float32(loss_value))])
+simple_value=float(loss_value))])
         self.writer.add_summary(criticloss, step)
 

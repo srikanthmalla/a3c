@@ -25,6 +25,9 @@ batch_size=1
 actor_lr=1E-3
 critic_lr=1E-3
 tf_logdir='./graphs/aclr_'+str(actor_lr)+',cr_lr'+str(critic_lr)+'/'
+import os,shutil
+if os.path.exists(tf_logdir):
+    shutil.rmtree(tf_logdir)
 LOSS_V=100.0#should be float
 dir_="./tmp/"+env_name+"/"+use_model
 import os
