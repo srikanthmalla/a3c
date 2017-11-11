@@ -1,26 +1,27 @@
 from params import *
-from agents.a2c_agent import *
+
+if use_model=='dqn':
+	from agents.dqn_agent import *
+	Agent = dqn_agent()
+elif use_model=='a2c':
+	from agents.a2c_agent import *
+	Agent = a2c_agent()
 
 if mode=='test':
-    Agent = a2c_agent()
-    Agent.test()
+	Agent.test()
 else:
-    if use_model=='a2c':
-        Agent = a2c_agent()
-        Agent.run()
-    elif use_model=='human':
-        from agents.human_agent import human_agent
-        Agent = human_agent()
-        Agent.run()
-    elif use_model=='a3c':
-        agents=[a3c_agent() for i in range(THREADS)]
-        for agent in agents:
-            agent.start()
-        for agent in agents:
-            agent.join()
-    else:
-        Agent = trpo_agent()
-    
+	if use_model=='human':
+		from agents.human_agent import human_agent
+		Agent = human_agent()
+		Agent.run()
+	elif use_model=='a3c':
+		agents=[a3c_agent() for i in range(THREADS)]
+		for agent in agents:
+			agent.start()
+		for agent in agents:
+			agent.join()
+	else:
+		Agent.run()
 print("Training Finished...")
 
 
