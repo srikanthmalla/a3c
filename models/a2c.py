@@ -12,7 +12,7 @@ class a2c():
         self.observation=tf.placeholder(tf.float32, shape=input_shape)
         self.R= tf.placeholder(tf.float32,shape=[None,1]) #not immediate but n step discounted
         self.a_t=tf.placeholder(tf.float32,shape=[None,no_of_actions]) #which action was taken 
-        self.p= tf.nn.softmax(self.actor(self.observation), name='action_probability')#probabilities of action predicted
+        self.p= tf.nn.softmax(self.actor(self.observation,trainable=True), name='action_probability')#probabilities of action predicted
         self.V= self.critic(self.observation) #value predicted
 
         #saver 
@@ -38,7 +38,7 @@ class a2c():
         self.init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
         self.sess.run(self.init_op)
         self.default_graph = tf.get_default_graph()
-        self.default_graph.finalize() # avoid modifications
+#        self.default_graph.finalize() # avoid modifications
     
     def save(self,step):
         self.saver.save(self.sess, ckpt_dir)
@@ -58,18 +58,18 @@ class a2c():
         a=self.sess.run(self.p,feed_dict={self.observation:observation})
         return a
 
-    def actor(self,inputs): #modified vgg net
+    def actor(self,inputs,trainable): #modified vgg net
         if use_net=='lenet':
-            actions, self.layers =net(inputs,10,no_of_actions,'actor/')
+            actions, self.layers =net(inputs,10,no_of_actions,'actor/',trainable)
         else:
-            actions =net(inputs,10,no_of_actions,'actor/')
+            actions =net(inputs,10,no_of_actions,'actor/',trainable)
         return actions
     
     def critic(self,inputs):
         if use_net=='lenet':
-            value,_ =net(inputs,10,1,'value/')
+            value,_ =net(inputs,10,1,'value/',trainable=True)
         else:
-            value=net(inputs,10,1,'value/')
+            value=net(inputs,10,1,'value/',trainable=True)
         return value
         
     def train_actor(self, observations, actions, R):
