@@ -1,4 +1,4 @@
-use_model='ppo'#dqn, a2c, a3c, ppo
+use_model='dqn'#dqn, a2c, a3c, ppo
 mode='train'
 #openai gym environments
 #--------
