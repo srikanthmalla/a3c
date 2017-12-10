@@ -18,6 +18,7 @@ else:
         Agent = human_agent()
         Agent.run()
     elif use_model=='a3c':
+        from agents.a3c_agent import *
         agents=[a3c_agent() for i in range(THREADS)]
         for agent in agents:
             agent.start()

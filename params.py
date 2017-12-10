@@ -1,4 +1,4 @@
-use_model='dqn'#dqn, a2c, a3c, ppo
+use_model='a3c'#dqn, a2c, a3c, ppo
 mode='train'
 #openai gym environments
 #--------
@@ -22,8 +22,8 @@ render=False
 #tensorflow details
 input_shape=(None,)+observation_shape
 output_shape = (None,)+ (no_of_actions,)
-batch_size=1
-lr=1E-1
+batch_size=4
+lr=1E-2
 actor_lr=lr
 critic_lr=lr
 tf_logdir='./graphs/'+use_model+'aclr_'+str(actor_lr)+',crlr'+str(critic_lr)+'/'
